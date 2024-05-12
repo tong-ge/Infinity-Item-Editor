@@ -3,6 +3,9 @@ package ruukas.infinityeditor.gui;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.client.CPacketCustomPayload;
 import org.lwjgl.opengl.GL11;
 
 import com.google.gson.GsonBuilder;
@@ -33,7 +36,7 @@ public abstract class GuiInfinity extends GuiScreen {
     int midY;
 
     protected GuiInfinityButton saveButton;
-    protected boolean hasSave = false;
+    protected boolean hasSave = true;
 
     private boolean renderStack = false;
     private int stackX = 5;
@@ -120,7 +123,13 @@ public abstract class GuiInfinity extends GuiScreen {
     }
 
     protected void save() {
-        mc.playerController.sendSlotPacket(getItemStack(), mc.player.inventory.currentItem + 36); // 36 is the index of the action (4 armor, 1 off hand, 5 crafting, and 27 inventory, if I remember correctly).
+        if(mc.playerController.isInCreativeMode() || mc.isSingleplayer()) {
+            mc.playerController.sendSlotPacket(getItemStack(), mc.player.inventory.currentItem + 36); // 36 is the index of the action (4 armor, 1 off hand, 5 crafting, and 27 inventory, if I remember correctly).
+        }else {
+            PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+            packetbuffer.writeItemStack(getItemStack());
+            this.mc.getConnection().sendPacket(new CPacketCustomPayload("MC|BEdit", packetbuffer));
+        }
         // back(); - Not sure if it should keep the GUI open or not.
     }
 
@@ -164,7 +173,8 @@ public abstract class GuiInfinity extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         if (hasSave && this.saveButton != null)
-            this.saveButton.enabled = this.dropButton.enabled = mc.playerController.isInCreativeMode() || mc.isSingleplayer();
+            this.saveButton.enabled = this.dropButton.enabled = //mc.playerController.isInCreativeMode() || mc.isSingleplayer();
+                    true;
 
         drawDefaultBackground();
 

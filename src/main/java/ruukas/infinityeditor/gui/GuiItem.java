@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.client.CPacketCustomPayload;
+import net.minecraftforge.common.util.Constants;
 import org.lwjgl.input.Keyboard;
 
 import net.minecraft.client.gui.GuiButton;
@@ -97,8 +102,17 @@ public class GuiItem extends GuiInfinity implements GuiYesNoCallback {
 
         if (mc.isSingleplayer()) {
             ((EntityPlayerMP) mc.getIntegratedServer().getEntityFromUuid(mc.player.getUniqueID())).inventoryContainer.putStackInSlot(saveSlot, getItemStack());
-        } else {
+        } else if(mc.playerController.isInCreativeMode()){
             mc.playerController.sendSlotPacket(getItemStack(), saveSlot);
+        }
+        else
+        {
+            mc.player.inventoryContainer.putStackInSlot(saveSlot, getItemStack());
+            if(getItemStack().getItem()== Items.WRITABLE_BOOK && getItemStack().getTagCompound().hasKey("pages", Constants.NBT.TAG_LIST)) {
+                PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+                packetbuffer.writeItemStack(getItemStack());
+                this.mc.getConnection().sendPacket(new CPacketCustomPayload("MC|BEdit", packetbuffer));
+            }
         }
     }
 
@@ -481,11 +495,13 @@ public class GuiItem extends GuiInfinity implements GuiYesNoCallback {
         //loreButton.drawButton( mc, mouseX, mouseY, partialTicks );
         loreButton.enabled = !getItemStack().isEmpty();
         loreButton.y = 100 + 30 * loreFields.size();
-
+/*
         if (mc.playerController.isNotCreative() && !mc.isSingleplayer()) {
             drawCenteredString(fontRenderer, I18n.format("warning.notcreative"), width / 2, height - 60, InfinityConfig.CONTRAST_COLOR);
         }
 
+
+ */
         for (GuiNumberField f : numberFields) {
             f.drawTextBox();
         }

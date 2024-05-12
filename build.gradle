@@ -33,9 +33,11 @@ minecraft {
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
+
     runs {
         client {
             workingDirectory project.file('run')
+            args("--username Developer")
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
